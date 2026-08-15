@@ -6,8 +6,10 @@ Logseq plugin to export a page together with its **linked references (backlinks 
 
 Phase 1 MVP implemented: command palette + slash command → single Markdown download.
 
+Tag + date filters for linked references are implemented via plugin settings (export dialog still planned).
+
 - **[docs/PLAN.md](./docs/PLAN.md)** — overall plugin design
-- **[docs/FILTER_PLAN.md](./docs/FILTER_PLAN.md)** — planned filters for linked refs by **tag** and **date range**
+- **[docs/FILTER_PLAN.md](./docs/FILTER_PLAN.md)** — filter design (tags + date ranges)
 
 **Scope lock:** page body + backlinks. No outbound page crawl, no recursion.
 
