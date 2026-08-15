@@ -1,0 +1,1 @@
+{"root":["./src/index.ts","./src/settings.ts","./src/export/collect.ts","./src/export/download.ts","./src/export/serialize-md.test.ts","./src/export/serialize-md.ts","./src/export/types.ts"],"version":"5.9.3"}

@@ -1,0 +1,32 @@
+{
+  "name": "logseq-export",
+  "version": "0.1.0",
+  "description": "Export a Logseq page together with its linked references (backlinks)",
+  "author": "mycodex-dev",
+  "license": "MIT",
+  "main": "dist/index.html",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -b --pretty false"
+  },
+  "logseq": {
+    "id": "logseq-export",
+    "title": "Export Page + Linked References",
+    "icon": "./icon.svg"
+  },
+  "dependencies": {
+    "@logseq/libs": "^0.0.17"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2",
+    "vite": "^6.2.2",
+    "vite-plugin-logseq": "^1.1.2",
+    "vitest": "^3.0.9"
+  },
+  "browserslist": [
+    "chrome 80"
+  ]
+}
