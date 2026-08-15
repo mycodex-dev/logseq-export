@@ -285,6 +285,6 @@ Manual:
 
 ## Suggested first slice
 
-1. Add `FilterOptions` + `filter-refs.ts` with unit tests  
-2. Plumb settings → `collectExport` → serialize provenance line  
-3. Only then build the export dialog (F2)
+1. Add `FilterOptions` + `filter-refs.ts` with unit tests — **done**
+2. Plumb settings → `collectExport` → serialize provenance line — **done**
+3. Only then build the export dialog (F2) — next

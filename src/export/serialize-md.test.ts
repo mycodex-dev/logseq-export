@@ -8,6 +8,7 @@ import {
   serializeExport,
 } from "./serialize-md";
 import type { ExportBundle } from "./types";
+import { emptyFilters } from "./types";
 
 function page(partial: Partial<PageEntity> & Pick<PageEntity, "name">): PageEntity {
   return {
@@ -113,9 +114,38 @@ describe("serializeExport", () => {
     expect(md).toContain("_No linked references._");
   });
 
+  it("documents applied filters and empty filtered state", () => {
+    const bundle: ExportBundle = {
+      page: page({ name: "filtered", originalName: "Filtered" }),
+      body: [block("body")],
+      linkedRefs: [],
+      appliedFilters: {
+        ...emptyFilters(),
+        includeTags: ["decision"],
+        dateFrom: "2026-01-01",
+        dateTo: "2026-03-31",
+      },
+    };
+
+    const md = serializeExport(bundle, {
+      includeParentPath: false,
+      linkStyle: "keep",
+      headingForRefs: "Linked References",
+    });
+
+    expect(md).toContain("_Filters: tags include decision (any); from 2026-01-01 to 2026-03-31_");
+    expect(md).toContain("_No linked references matched the current filters._");
+  });
+
   it("builds a safe download filename", () => {
     expect(exportFilename(page({ name: "a/b", originalName: "A/B" }))).toBe(
       "A_B-with-linked-references.md",
     );
+    expect(
+      exportFilename(page({ name: "a/b", originalName: "A/B" }), {
+        ...emptyFilters(),
+        includeTags: ["x"],
+      }),
+    ).toBe("A_B-with-linked-references-filtered.md");
   });
 });

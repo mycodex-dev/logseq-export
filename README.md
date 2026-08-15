@@ -19,6 +19,7 @@ Phase 1 MVP implemented: command palette + slash command → single Markdown dow
 - Collects backlinks via `getPageLinkedReferences`
 - Optional parent-path context for each backlink
 - Wiki-link rewriting: keep / bold / plain
+- **Filter linked references** by include/exclude tags and inclusive date range (plugin settings)
 - Plugin settings for format defaults and link style
 
 ## Install (development)

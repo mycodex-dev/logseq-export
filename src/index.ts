@@ -1,7 +1,9 @@
 import "@logseq/libs";
 import { collectExport } from "./export/collect";
 import { downloadTextFile } from "./export/download";
+import { countRefBlocks } from "./export/filter-refs";
 import { exportFilename, serializeExport } from "./export/serialize-md";
+import { filtersAreActive } from "./export/types";
 import { readExportSettings, settingsSchema } from "./settings";
 
 async function exportCurrentPageWithLinkedReferences(): Promise<void> {
@@ -23,6 +25,7 @@ async function exportCurrentPageWithLinkedReferences(): Promise<void> {
     const identity = current.uuid ?? current.name;
     const bundle = await collectExport(identity, {
       includeParentPath: settings.includeParentPath,
+      filters: settings.filters,
     });
     const markdown = serializeExport(bundle, {
       includeParentPath: settings.includeParentPath,
@@ -30,12 +33,16 @@ async function exportCurrentPageWithLinkedReferences(): Promise<void> {
       headingForRefs: settings.headingForRefs,
     });
 
-    downloadTextFile(exportFilename(bundle.page), markdown);
-    const refCount = bundle.linkedRefs.reduce((sum, group) => sum + group.blocks.length, 0);
-    await logseq.UI.showMsg(
-      `Exported “${bundle.page.originalName || bundle.page.name}” with ${refCount} linked reference block(s).`,
-      "success",
-    );
+    downloadTextFile(exportFilename(bundle.page, bundle.appliedFilters), markdown);
+
+    const refCount = countRefBlocks(bundle.linkedRefs);
+    const before = bundle.linkedRefCountBeforeFilter ?? refCount;
+    const filtered = filtersAreActive(settings.filters);
+    const title = bundle.page.originalName || bundle.page.name;
+    const message = filtered
+      ? `Exported “${title}” with ${refCount} linked reference block(s) (filtered from ${before}).`
+      : `Exported “${title}” with ${refCount} linked reference block(s).`;
+    await logseq.UI.showMsg(message, "success");
   } catch (error) {
     console.error("[logseq-export]", error);
     const message = error instanceof Error ? error.message : "Export failed.";

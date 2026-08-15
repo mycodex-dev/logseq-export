@@ -1,5 +1,7 @@
 import type { BlockEntity, PageEntity } from "@logseq/libs/dist/LSPlugin.user";
-import type { ExportBundle, LinkStyle, SerializeOptions } from "./types";
+import { describeFilters } from "./filter-refs";
+import type { ExportBundle, FilterOptions, LinkStyle, SerializeOptions } from "./types";
+import { filtersAreActive } from "./types";
 
 const WIKI_LINK_RE = /\[\[([^\]]+)\]\]/g;
 
@@ -61,7 +63,6 @@ function blockContent(block: BlockEntity): string {
 
 function shouldSkipBlock(block: BlockEntity): boolean {
   const content = blockContent(block).trim();
-  // Skip empty property-only heading placeholders sometimes present as page title blocks
   if (!content) return true;
   return false;
 }
@@ -86,7 +87,7 @@ export function blocksToMarkdown(
       lines.push(`${indent}-`);
     }
 
-    const children = (block.children ?? []) as BlockEntity[];
+    const children = (block.children as BlockEntity[] | undefined) ?? [];
     if (children.length > 0) {
       lines.push(...blocksToMarkdown(children, linkStyle, depth + 1));
     }
@@ -99,7 +100,6 @@ function linkedRefBlocksToMarkdown(
   blocks: BlockEntity[],
   options: SerializeOptions,
 ): string[] {
-  // Parent-path nesting is applied during collection when enabled.
   return blocksToMarkdown(blocks, options.linkStyle, 0);
 }
 
@@ -122,8 +122,19 @@ export function serializeExport(bundle: ExportBundle, options: SerializeOptions)
 
   parts.push("---", "", `## ${options.headingForRefs}`, "");
 
+  const filterSummary = bundle.appliedFilters
+    ? describeFilters(bundle.appliedFilters)
+    : null;
+  if (filterSummary) {
+    parts.push(`_Filters: ${filterSummary}_`, "");
+  }
+
   if (bundle.linkedRefs.length === 0) {
-    parts.push("_No linked references._", "");
+    if (filterSummary) {
+      parts.push("_No linked references matched the current filters._", "");
+    } else {
+      parts.push("_No linked references._", "");
+    }
   } else {
     for (const group of bundle.linkedRefs) {
       const fromTitle = pageTitle(group.page);
@@ -140,6 +151,8 @@ export function serializeExport(bundle: ExportBundle, options: SerializeOptions)
   return parts.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd() + "\n";
 }
 
-export function exportFilename(page: PageEntity): string {
-  return `${sanitizeFilename(pageTitle(page))}-with-linked-references.md`;
+export function exportFilename(page: PageEntity, filters?: FilterOptions): string {
+  const base = `${sanitizeFilename(pageTitle(page))}-with-linked-references`;
+  const suffix = filters && filtersAreActive(filters) ? "-filtered" : "";
+  return `${base}${suffix}.md`;
 }
