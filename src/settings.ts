@@ -10,14 +10,17 @@ import type {
 } from "./export/types";
 import { emptyFilters } from "./export/types";
 
+const FORMAT_CHOICES = ["markdown", "markdown-zip", "html", "plain"] as const;
+
 export const settingsSchema: SettingSchemaDesc[] = [
   {
     key: "defaultFormat",
     type: "enum",
     title: "Default export format",
-    description: "ZIP packaging lands in a later release; Markdown is used for now.",
+    description:
+      "markdown = single .md; markdown-zip = multi-file ZIP; html = self-contained page; plain = .txt",
     default: "markdown",
-    enumChoices: ["markdown", "zip"],
+    enumChoices: [...FORMAT_CHOICES],
     enumPicker: "select",
   },
   {
@@ -32,7 +35,7 @@ export const settingsSchema: SettingSchemaDesc[] = [
     key: "linkStyle",
     type: "enum",
     title: "Wiki-link style in export",
-    description: "How [[Page]] links are rewritten in the exported Markdown.",
+    description: "How [[Page]] links are rewritten in the exported Markdown / text / HTML.",
     default: "keep",
     enumChoices: ["keep", "bold", "plain"],
     enumPicker: "select",
@@ -41,7 +44,7 @@ export const settingsSchema: SettingSchemaDesc[] = [
     key: "headingForRefs",
     type: "string",
     title: "Linked references heading",
-    description: "Section title used above the backlinks in the single-file Markdown export.",
+    description: "Section title used above the backlinks in the export.",
     default: "Linked References",
   },
   {
@@ -106,6 +109,12 @@ function asEnum<T extends string>(value: unknown, allowed: readonly T[], fallbac
     : fallback;
 }
 
+function readFormat(raw: unknown): ExportFormat {
+  // Legacy setting value from early builds
+  if (raw === "zip") return "markdown-zip";
+  return asEnum<ExportFormat>(raw, FORMAT_CHOICES, "markdown");
+}
+
 function readFilters(raw: Record<string, unknown>): FilterOptions {
   const base = emptyFilters();
   return {
@@ -124,7 +133,7 @@ export function readExportSettings(): ExportSettings {
   const raw = (logseq.settings ?? {}) as Record<string, unknown>;
 
   return {
-    defaultFormat: asEnum<ExportFormat>(raw.defaultFormat, ["markdown", "zip"], "markdown"),
+    defaultFormat: readFormat(raw.defaultFormat),
     includeParentPath: raw.includeParentPath !== false,
     linkStyle: asEnum<LinkStyle>(raw.linkStyle, ["keep", "bold", "plain"], "keep"),
     headingForRefs:

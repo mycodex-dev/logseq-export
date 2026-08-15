@@ -280,7 +280,7 @@ ZIP and tests reuse the split helpers.
 
 ## Suggested first slice
 
-1. Renderer seam + `downloadBlob` (O0)  
-2. Real **Markdown ZIP** (O1)  
-3. **HTML** + **plain** writers (O2)  
+1. Renderer seam + `downloadBlob` (O0) — **done**
+2. Real **Markdown ZIP** (O1) — **done**
+3. **HTML** + **plain** writers (O2) — **done**
 4. Dialog format picker when export UI lands (O3)

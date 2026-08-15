@@ -7,10 +7,11 @@ Logseq plugin to export a page together with its **linked references (backlinks 
 Phase 1 MVP implemented: command palette + slash command → single Markdown download.
 
 Tag + date filters for linked references are implemented via plugin settings (export dialog still planned).
+Multi-format export is implemented: Markdown, Markdown ZIP, HTML, plain text.
 
 - **[docs/PLAN.md](./docs/PLAN.md)** — overall plugin design
 - **[docs/FILTER_PLAN.md](./docs/FILTER_PLAN.md)** — filter design (tags + date ranges)
-- **[docs/FORMATS_PLAN.md](./docs/FORMATS_PLAN.md)** — planned multi-format outputs (Markdown ZIP, HTML, plain text, …)
+- **[docs/FORMATS_PLAN.md](./docs/FORMATS_PLAN.md)** — multi-format outputs design
 
 **Scope lock:** page body + backlinks. No outbound page crawl, no recursion.
 
@@ -22,6 +23,7 @@ Tag + date filters for linked references are implemented via plugin settings (ex
 - Collects backlinks via `getPageLinkedReferences`
 - Optional parent-path context for each backlink
 - Wiki-link rewriting: keep / bold / plain
+- **Output formats:** Markdown, Markdown ZIP, HTML, plain text (plugin setting)
 - **Filter linked references** by include/exclude tags and inclusive date range (plugin settings)
 - Plugin settings for format defaults and link style
 

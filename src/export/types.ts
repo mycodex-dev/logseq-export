@@ -2,7 +2,8 @@ import type { BlockEntity, PageEntity } from "@logseq/libs/dist/LSPlugin.user";
 
 export type LinkStyle = "keep" | "bold" | "plain";
 
-export type ExportFormat = "markdown" | "zip";
+/** Canonical format ids. Legacy settings value `zip` maps to `markdown-zip`. */
+export type ExportFormat = "markdown" | "markdown-zip" | "html" | "plain";
 
 export type TagMatchMode = "any" | "all";
 
@@ -44,6 +45,12 @@ export interface SerializeOptions {
   headingForRefs: string;
 }
 
+export interface RenderedExport {
+  filename: string;
+  mime: string;
+  blob: Blob;
+}
+
 export function emptyFilters(): FilterOptions {
   return {
     includeTags: [],
@@ -63,4 +70,17 @@ export function filtersAreActive(filters: FilterOptions): boolean {
     filters.dateFrom != null ||
     filters.dateTo != null
   );
+}
+
+export function formatLabel(format: ExportFormat): string {
+  switch (format) {
+    case "markdown":
+      return "Markdown";
+    case "markdown-zip":
+      return "Markdown ZIP";
+    case "html":
+      return "HTML";
+    case "plain":
+      return "plain text";
+  }
 }

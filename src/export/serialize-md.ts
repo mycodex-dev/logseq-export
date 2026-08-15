@@ -1,6 +1,6 @@
 import type { BlockEntity, PageEntity } from "@logseq/libs/dist/LSPlugin.user";
 import { describeFilters } from "./filter-refs";
-import type { ExportBundle, FilterOptions, LinkStyle, SerializeOptions } from "./types";
+import type { ExportBundle, ExportFormat, FilterOptions, LinkStyle, SerializeOptions } from "./types";
 import { filtersAreActive } from "./types";
 
 const WIKI_LINK_RE = /\[\[([^\]]+)\]\]/g;
@@ -23,7 +23,7 @@ export function sanitizeFilename(name: string): string {
     .slice(0, 120) || "export";
 }
 
-function pageTitle(page: PageEntity): string {
+export function pageTitle(page: PageEntity): string {
   return page.originalName || page.name || "Untitled";
 }
 
@@ -62,9 +62,7 @@ function blockContent(block: BlockEntity): string {
 }
 
 function shouldSkipBlock(block: BlockEntity): boolean {
-  const content = blockContent(block).trim();
-  if (!content) return true;
-  return false;
+  return !blockContent(block).trim();
 }
 
 export function blocksToMarkdown(
@@ -96,11 +94,65 @@ export function blocksToMarkdown(
   return lines;
 }
 
-function linkedRefBlocksToMarkdown(
-  blocks: BlockEntity[],
+function finishMarkdown(parts: string[]): string {
+  return parts.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd() + "\n";
+}
+
+/** Page title, properties, and body blocks only. */
+export function serializePageMarkdown(bundle: ExportBundle, options: SerializeOptions): string {
+  const title = pageTitle(bundle.page);
+  const parts: string[] = [`# ${title}`, ""];
+
+  const props = propertiesToMarkdown(
+    bundle.page.properties as Record<string, unknown> | undefined,
+    options.linkStyle,
+  );
+  if (props.length > 0) {
+    parts.push(...props, "");
+  }
+
+  const bodyLines = blocksToMarkdown(bundle.body, options.linkStyle);
+  if (bodyLines.length > 0) {
+    parts.push(...bodyLines, "");
+  }
+
+  return finishMarkdown(parts);
+}
+
+/** Linked references section (heading + filter note + groups). */
+export function serializeLinkedRefsMarkdown(
+  bundle: ExportBundle,
   options: SerializeOptions,
-): string[] {
-  return blocksToMarkdown(blocks, options.linkStyle, 0);
+): string {
+  const parts: string[] = [`# ${options.headingForRefs}`, ""];
+
+  const filterSummary = bundle.appliedFilters
+    ? describeFilters(bundle.appliedFilters)
+    : null;
+  if (filterSummary) {
+    parts.push(`_Filters: ${filterSummary}_`, "");
+  }
+
+  if (bundle.linkedRefs.length === 0) {
+    if (filterSummary) {
+      parts.push("_No linked references matched the current filters._", "");
+    } else {
+      parts.push("_No linked references._", "");
+    }
+  } else {
+    for (const group of bundle.linkedRefs) {
+      const fromTitle = pageTitle(group.page);
+      parts.push(`## From [[${fromTitle}]]`, "");
+      const refLines = blocksToMarkdown(group.blocks, options.linkStyle, 0);
+      if (refLines.length === 0) {
+        parts.push("_No blocks._", "");
+      } else {
+        parts.push(...refLines, "");
+      }
+    }
+  }
+
+  return finishMarkdown(parts);
 }
 
 export function serializeExport(bundle: ExportBundle, options: SerializeOptions): string {
@@ -139,7 +191,7 @@ export function serializeExport(bundle: ExportBundle, options: SerializeOptions)
     for (const group of bundle.linkedRefs) {
       const fromTitle = pageTitle(group.page);
       parts.push(`### From [[${fromTitle}]]`, "");
-      const refLines = linkedRefBlocksToMarkdown(group.blocks, options);
+      const refLines = blocksToMarkdown(group.blocks, options.linkStyle, 0);
       if (refLines.length === 0) {
         parts.push("_No blocks._", "");
       } else {
@@ -148,11 +200,26 @@ export function serializeExport(bundle: ExportBundle, options: SerializeOptions)
     }
   }
 
-  return parts.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd() + "\n";
+  return finishMarkdown(parts);
 }
 
-export function exportFilename(page: PageEntity, filters?: FilterOptions): string {
+const FORMAT_EXTENSION: Record<ExportFormat, string> = {
+  markdown: "md",
+  "markdown-zip": "zip",
+  html: "html",
+  plain: "txt",
+};
+
+export function exportBasename(page: PageEntity, filters?: FilterOptions): string {
   const base = `${sanitizeFilename(pageTitle(page))}-with-linked-references`;
   const suffix = filters && filtersAreActive(filters) ? "-filtered" : "";
-  return `${base}${suffix}.md`;
+  return `${base}${suffix}`;
+}
+
+export function exportFilename(
+  page: PageEntity,
+  filters?: FilterOptions,
+  format: ExportFormat = "markdown",
+): string {
+  return `${exportBasename(page, filters)}.${FORMAT_EXTENSION[format]}`;
 }

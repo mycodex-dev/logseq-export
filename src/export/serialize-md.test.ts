@@ -147,5 +147,8 @@ describe("serializeExport", () => {
         includeTags: ["x"],
       }),
     ).toBe("A_B-with-linked-references-filtered.md");
+    expect(
+      exportFilename(page({ name: "a/b", originalName: "A/B" }), emptyFilters(), "html"),
+    ).toBe("A_B-with-linked-references.html");
   });
 });

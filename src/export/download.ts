@@ -1,5 +1,4 @@
-export function downloadTextFile(filename: string, content: string, mime = "text/markdown"): void {
-  const blob = new Blob([content], { type: `${mime};charset=utf-8` });
+export function downloadBlob(filename: string, blob: Blob): void {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
@@ -9,4 +8,9 @@ export function downloadTextFile(filename: string, content: string, mime = "text
   anchor.click();
   anchor.remove();
   URL.revokeObjectURL(url);
+}
+
+/** @deprecated Prefer downloadBlob via renderExport */
+export function downloadTextFile(filename: string, content: string, mime = "text/markdown"): void {
+  downloadBlob(filename, new Blob([content], { type: `${mime};charset=utf-8` }));
 }
