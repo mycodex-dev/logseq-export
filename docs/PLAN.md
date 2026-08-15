@@ -227,7 +227,8 @@ Suggested `package.json` identity:
 - Filters apply to backlinks only; page body unchanged
 
 ### Phase 3 — Packaging & UX
-- ZIP multi-file output + `meta.json`
+- See **[FORMATS_PLAN.md](./FORMATS_PLAN.md)** for multi-format design
+- ZIP multi-file output + `meta.json`; HTML + plain text writers
 - Lightweight export dialog shared with filters (format / parent-path / link style)
 - Page toolbar / slash command entry points
 - Empty-state handling (no refs, journals, namespaces)

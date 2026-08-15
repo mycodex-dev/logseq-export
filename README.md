@@ -10,6 +10,7 @@ Tag + date filters for linked references are implemented via plugin settings (ex
 
 - **[docs/PLAN.md](./docs/PLAN.md)** — overall plugin design
 - **[docs/FILTER_PLAN.md](./docs/FILTER_PLAN.md)** — filter design (tags + date ranges)
+- **[docs/FORMATS_PLAN.md](./docs/FORMATS_PLAN.md)** — planned multi-format outputs (Markdown ZIP, HTML, plain text, …)
 
 **Scope lock:** page body + backlinks. No outbound page crawl, no recursion.
 
