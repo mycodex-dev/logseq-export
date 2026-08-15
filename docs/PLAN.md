@@ -220,17 +220,23 @@ Suggested `package.json` identity:
 - Download + success toast
 - Basic settings: link style, include parent path
 
-### Phase 2 — Packaging & UX
+### Phase 2 — Filter linked references (tags + date ranges)
+- See **[FILTER_PLAN.md](./FILTER_PLAN.md)** for full design
+- Pure filter module (include/exclude tags, inclusive date window)
+- Settings-first, then export dialog with live preview counts
+- Filters apply to backlinks only; page body unchanged
+
+### Phase 3 — Packaging & UX
 - ZIP multi-file output + `meta.json`
-- Lightweight export dialog (format / parent-path / link style)
+- Lightweight export dialog shared with filters (format / parent-path / link style)
 - Page toolbar / slash command entry points
 - Empty-state handling (no refs, journals, namespaces)
 
-### Phase 3 — Polish & release
+### Phase 4 — Polish & release
 - README, screenshots, Marketplace assets
 - Manual test checklist (file graphs + DB graphs if supported by libs version)
 - Semantic-release / zip artifact CI (optional)
-- Optional later: keyword filter / size warning for huge backlink sets; asset copy into ZIP
+- Optional later: size warning for huge backlink sets; asset copy into ZIP
 
 ## Edge cases & risks
 
