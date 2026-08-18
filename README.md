@@ -33,6 +33,8 @@ Multi-format export is implemented: Markdown, Markdown ZIP, HTML, plain text.
 2. `npm run build`
 3. In Logseq: enable **Developer mode** → Plugins → **Load unpacked plugin** → select this repo folder (the one with `package.json`)
 
+If Logseq warns that the plugin takes too long to load: rebuild (`npm run build`), remove the unpacked plugin, and load it again from the repo root. This build uses `effect: true` and lazy-loads export code so startup stays short.
+
 ## Usage
 
 1. Open a page

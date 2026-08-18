@@ -1,6 +1,6 @@
 {
   "name": "logseq-export",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Export a Logseq page together with its linked references (backlinks)",
   "author": "mycodex-dev",
   "license": "MIT",
@@ -15,7 +15,8 @@
   "logseq": {
     "id": "logseq-export",
     "title": "Export Page + Linked References",
-    "icon": "./icon.svg"
+    "icon": "./icon.svg",
+    "effect": true
   },
   "dependencies": {
     "@logseq/libs": "^0.0.17",

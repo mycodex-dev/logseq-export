@@ -1,4 +1,3 @@
-import JSZip from "jszip";
 import { countRefBlocks, describeFilters } from "./filter-refs";
 import {
   exportBasename,
@@ -26,7 +25,7 @@ export interface ZipMeta {
 
 export function buildZipMeta(
   bundle: ExportBundle,
-  pluginVersion = "0.2.0",
+  pluginVersion = "0.2.1",
 ): ZipMeta {
   const filtersActive = !!(
     bundle.appliedFilters && filtersAreActive(bundle.appliedFilters)
@@ -47,9 +46,7 @@ export function buildZipMeta(
   };
 }
 
-function countBlocks(
-  blocks: ExportBundle["body"],
-): number {
+function countBlocks(blocks: ExportBundle["body"]): number {
   let n = 0;
   for (const block of blocks) {
     n += 1;
@@ -64,6 +61,8 @@ export async function packageMarkdownZip(
   options: SerializeOptions,
   pluginVersion?: string,
 ): Promise<Blob> {
+  // Lazy-load JSZip so it is not part of the plugin startup graph.
+  const { default: JSZip } = await import("jszip");
   const zip = new JSZip();
   const folderName = exportBasename(bundle.page, bundle.appliedFilters);
   const folder = zip.folder(folderName);

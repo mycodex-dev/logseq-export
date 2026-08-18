@@ -1,7 +1,4 @@
-import { packageMarkdownZip } from "./package-zip";
-import { serializeHtml } from "./serialize-html";
 import { exportFilename, serializeExport } from "./serialize-md";
-import { serializePlain } from "./serialize-plain";
 import type {
   ExportBundle,
   ExportFormat,
@@ -34,6 +31,7 @@ export async function renderExport(
       };
     }
     case "html": {
+      const { serializeHtml } = await import("./serialize-html");
       const text = serializeHtml(bundle, options);
       return {
         filename,
@@ -42,8 +40,7 @@ export async function renderExport(
       };
     }
     case "plain": {
-      // Prefer plain wiki-link rewriting for .txt unless user set keep/bold explicitly —
-      // we honor the user's linkStyle from settings as-is.
+      const { serializePlain } = await import("./serialize-plain");
       const text = serializePlain(bundle, options);
       return {
         filename,
@@ -52,6 +49,7 @@ export async function renderExport(
       };
     }
     case "markdown-zip": {
+      const { packageMarkdownZip } = await import("./package-zip");
       const blob = await packageMarkdownZip(bundle, options, options.pluginVersion);
       return {
         filename,
