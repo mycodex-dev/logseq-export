@@ -6,6 +6,7 @@ import {
   rewriteLinks,
   sanitizeFilename,
   serializeExport,
+  withoutDuplicatedPageProperties,
 } from "./serialize-md";
 import type { ExportBundle } from "./types";
 import { emptyFilters } from "./types";
@@ -62,6 +63,32 @@ describe("blocksToMarkdown", () => {
   it("renders nested lists", () => {
     const tree = [block("parent", [block("child")])];
     expect(blocksToMarkdown(tree, "keep")).toEqual(["- parent", "  - child"]);
+  });
+});
+
+describe("withoutDuplicatedPageProperties", () => {
+  it("drops a leading properties-only block when page.properties is present", () => {
+    const propsBlock = block("salesperson:: Brian\npresales-lead:: Ajay");
+    const heading = block("# Intro");
+    expect(
+      withoutDuplicatedPageProperties([propsBlock, heading], {
+        salesperson: "Brian",
+        presalesLead: "Ajay",
+      }),
+    ).toEqual([heading]);
+  });
+
+  it("strips property lines from a mixed first block", () => {
+    const mixed = block("status:: active\n# Intro");
+    const [kept] = withoutDuplicatedPageProperties([mixed], { status: "active" });
+    expect(kept.content).toBe("# Intro");
+  });
+
+  it("keeps the properties block when page.properties is empty", () => {
+    const propsBlock = block("status:: active");
+    expect(withoutDuplicatedPageProperties([propsBlock], undefined)).toEqual([
+      propsBlock,
+    ]);
   });
 });
 

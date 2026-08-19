@@ -1,6 +1,6 @@
 import type { BlockEntity } from "@logseq/libs/dist/LSPlugin.user";
 import { describeFilters } from "./filter-refs";
-import { pageTitle, rewriteLinks } from "./serialize-md";
+import { pageTitle, rewriteLinks, withoutDuplicatedPageProperties } from "./serialize-md";
 import type { ExportBundle, LinkStyle, SerializeOptions } from "./types";
 
 function blockContent(block: BlockEntity): string {
@@ -63,7 +63,13 @@ export function serializePlain(bundle: ExportBundle, options: SerializeOptions):
     parts.push(...props, "");
   }
 
-  const body = blocksToPlain(bundle.body, options.linkStyle);
+  const body = blocksToPlain(
+    withoutDuplicatedPageProperties(
+      bundle.body,
+      bundle.page.properties as Record<string, unknown> | undefined,
+    ),
+    options.linkStyle,
+  );
   if (body.length > 0) {
     parts.push(...body, "");
   }

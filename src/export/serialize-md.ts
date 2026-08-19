@@ -27,15 +27,80 @@ export function pageTitle(page: PageEntity): string {
   return page.originalName || page.name || "Untitled";
 }
 
+const PROPERTY_LINE_RE = /^[A-Za-z0-9][\w-]*\s*::/;
+
+function isHiddenPagePropKey(key: string): boolean {
+  return key === "id" || key === "title";
+}
+
+export function hasRenderablePageProperties(
+  properties: Record<string, unknown> | undefined,
+): boolean {
+  if (!properties) return false;
+  return Object.entries(properties).some(
+    ([key, value]) => !isHiddenPagePropKey(key) && value != null,
+  );
+}
+
+export function isPropertiesOnlyContent(content: string): boolean {
+  const lines = content
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+  return lines.length > 0 && lines.every((line) => PROPERTY_LINE_RE.test(line));
+}
+
+function stripPropertyLines(content: string): string {
+  return content
+    .split("\n")
+    .filter((line) => !PROPERTY_LINE_RE.test(line.trim()))
+    .join("\n")
+    .replace(/^\n+/, "")
+    .replace(/\n+$/, "");
+}
+
+/**
+ * Logseq stores page properties both on `page.properties` and as the first
+ * body block (`key:: value` lines). Drop that duplicate when properties
+ * are already rendered from the page object.
+ */
+export function withoutDuplicatedPageProperties(
+  blocks: BlockEntity[],
+  pageProperties: Record<string, unknown> | undefined,
+): BlockEntity[] {
+  if (!hasRenderablePageProperties(pageProperties) || blocks.length === 0) {
+    return blocks;
+  }
+
+  const [first, ...rest] = blocks;
+  const content = typeof first.content === "string" ? first.content : "";
+  const children = (first.children as BlockEntity[] | undefined) ?? [];
+
+  if (isPropertiesOnlyContent(content)) {
+    return [...children, ...rest];
+  }
+
+  const stripped = stripPropertyLines(content);
+  if (stripped === content) return blocks;
+  if (!stripped.trim()) return [...children, ...rest];
+  return [{ ...first, content: stripped }, ...rest];
+}
+
+function pageProperties(
+  page: PageEntity,
+): Record<string, unknown> | undefined {
+  return page.properties as Record<string, unknown> | undefined;
+}
+
 function propertiesToMarkdown(
   properties: Record<string, unknown> | undefined,
   linkStyle: LinkStyle,
 ): string[] {
-  if (!properties || Object.keys(properties).length === 0) return [];
+  if (!hasRenderablePageProperties(properties)) return [];
 
   const lines: string[] = [];
-  for (const [key, value] of Object.entries(properties)) {
-    if (key === "id" || key === "title") continue;
+  for (const [key, value] of Object.entries(properties!)) {
+    if (isHiddenPagePropKey(key)) continue;
     const rendered = formatPropertyValue(value, linkStyle);
     if (rendered === null) continue;
     lines.push(`${key}:: ${rendered}`);
@@ -103,15 +168,15 @@ export function serializePageMarkdown(bundle: ExportBundle, options: SerializeOp
   const title = pageTitle(bundle.page);
   const parts: string[] = [`# ${title}`, ""];
 
-  const props = propertiesToMarkdown(
-    bundle.page.properties as Record<string, unknown> | undefined,
-    options.linkStyle,
-  );
+  const props = propertiesToMarkdown(pageProperties(bundle.page), options.linkStyle);
   if (props.length > 0) {
     parts.push(...props, "");
   }
 
-  const bodyLines = blocksToMarkdown(bundle.body, options.linkStyle);
+  const bodyLines = blocksToMarkdown(
+    withoutDuplicatedPageProperties(bundle.body, pageProperties(bundle.page)),
+    options.linkStyle,
+  );
   if (bodyLines.length > 0) {
     parts.push(...bodyLines, "");
   }
@@ -159,15 +224,15 @@ export function serializeExport(bundle: ExportBundle, options: SerializeOptions)
   const title = pageTitle(bundle.page);
   const parts: string[] = [`# ${title}`, ""];
 
-  const props = propertiesToMarkdown(
-    bundle.page.properties as Record<string, unknown> | undefined,
-    options.linkStyle,
-  );
+  const props = propertiesToMarkdown(pageProperties(bundle.page), options.linkStyle);
   if (props.length > 0) {
     parts.push(...props, "");
   }
 
-  const bodyLines = blocksToMarkdown(bundle.body, options.linkStyle);
+  const bodyLines = blocksToMarkdown(
+    withoutDuplicatedPageProperties(bundle.body, pageProperties(bundle.page)),
+    options.linkStyle,
+  );
   if (bodyLines.length > 0) {
     parts.push(...bodyLines, "");
   }

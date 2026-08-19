@@ -3,7 +3,7 @@ import type { BlockEntity, PageEntity } from "@logseq/libs/dist/LSPlugin.user";
 import JSZip from "jszip";
 import { packageMarkdownZip, buildZipMeta } from "./package-zip";
 import { renderExport } from "./render";
-import { escapeHtml, serializeHtml } from "./serialize-html";
+import { escapeHtml, formatBlockHtml, formatInlineHtml, serializeHtml } from "./serialize-html";
 import { serializePlain } from "./serialize-plain";
 import type { ExportBundle } from "./types";
 import { emptyFilters } from "./types";
@@ -54,6 +54,60 @@ describe("escapeHtml", () => {
   });
 });
 
+describe("formatInlineHtml", () => {
+  it("converts bold, italic, strike, highlight, and code", () => {
+    expect(formatInlineHtml("**bold** and *italic*", "keep")).toBe(
+      "<strong>bold</strong> and <em>italic</em>",
+    );
+    expect(formatInlineHtml("~~old~~ ==new== `code`", "keep")).toBe(
+      "<del>old</del> <mark>new</mark> <code>code</code>",
+    );
+  });
+
+  it("keeps wiki links and still formats markdown around them", () => {
+    expect(formatInlineHtml("See [[Alpha]] and **go**", "keep")).toBe(
+      'See <a class="wikilink" href="#">Alpha</a> and <strong>go</strong>',
+    );
+  });
+
+  it("escapes raw HTML inside formatted spans", () => {
+    expect(formatInlineHtml("**hello <b>**", "keep")).toBe(
+      "<strong>hello &lt;b&gt;</strong>",
+    );
+  });
+
+  it("does not turn javascript: markdown links into anchors", () => {
+    expect(formatInlineHtml("[x](javascript:alert(1))", "keep")).toBe(
+      "[x](javascript:alert(1))",
+    );
+  });
+
+  it("renders http markdown links", () => {
+    expect(formatInlineHtml("[docs](https://example.com)", "keep")).toBe(
+      '<a href="https://example.com">docs</a>',
+    );
+  });
+});
+
+describe("formatBlockHtml", () => {
+  it("converts heading prefixes to heading tags", () => {
+    expect(formatBlockHtml("# Intro", "keep")).toBe("<h1>Intro</h1>");
+    expect(formatBlockHtml("## Details with **x**", "keep")).toBe(
+      "<h2>Details with <strong>x</strong></h2>",
+    );
+  });
+
+  it("does not treat hashtags as headings", () => {
+    expect(formatBlockHtml("#project", "keep")).toBe("#project");
+  });
+
+  it("renders fenced code without interpreting markdown inside", () => {
+    expect(formatBlockHtml("```\n**not bold**\n```", "keep")).toBe(
+      "<pre><code>**not bold**</code></pre>",
+    );
+  });
+});
+
 describe("serializeHtml", () => {
   it("renders a self-contained document with escaped content", () => {
     const html = serializeHtml(sampleBundle(), baseOptions);
@@ -63,6 +117,46 @@ describe("serializeHtml", () => {
     expect(html).toContain('id="linked-references"');
     expect(html).toContain("From");
     expect(html).toContain('<a class="wikilink"');
+  });
+
+  it("converts markdown headings and bold in the page body", () => {
+    const bundle: ExportBundle = {
+      page: page({ name: "notes", originalName: "Notes" }),
+      body: [block("# Intro", [block("Use **bold** and *italic*")])],
+      linkedRefs: [],
+    };
+    const html = serializeHtml(bundle, baseOptions);
+    expect(html).toContain("<h1>Intro</h1>");
+    expect(html).toContain("<strong>bold</strong>");
+    expect(html).toContain("<em>italic</em>");
+    expect(html).not.toContain("# Intro");
+    expect(html).not.toContain("**bold**");
+  });
+
+  it("does not repeat page properties as a body block", () => {
+    const bundle: ExportBundle = {
+      page: page({
+        name: "sample page",
+        originalName: "sample page",
+        properties: {
+          salesperson: "Brian",
+          presalesLead: "Ajay",
+          products: "Suite",
+        },
+      }),
+      body: [
+        block(
+          "salesperson:: Brian\npresales-lead:: Ajay\nproducts:: Suite",
+        ),
+        block("# Intro"),
+      ],
+      linkedRefs: [],
+    };
+    const html = serializeHtml(bundle, baseOptions);
+    expect(html).toContain('<span class="prop-key">salesperson</span>: Brian');
+    expect(html).toContain("<h1>Intro</h1>");
+    expect(html).not.toContain("salesperson::");
+    expect(html).not.toContain("presales-lead::");
   });
 
   it("nests linked-ref children under the matching block in given order", () => {
