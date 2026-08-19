@@ -106,6 +106,12 @@ describe("formatBlockHtml", () => {
       "<pre><code>**not bold**</code></pre>",
     );
   });
+
+  it("preserves in-block line breaks", () => {
+    expect(formatBlockHtml("This is a line\nSecond line in the same block", "keep")).toBe(
+      "This is a line<br/>Second line in the same block",
+    );
+  });
 });
 
 describe("serializeHtml", () => {
@@ -131,6 +137,16 @@ describe("serializeHtml", () => {
     expect(html).toContain("<em>italic</em>");
     expect(html).not.toContain("# Intro");
     expect(html).not.toContain("**bold**");
+  });
+
+  it("keeps Shift+Enter lines on separate rows", () => {
+    const bundle: ExportBundle = {
+      page: page({ name: "notes", originalName: "Notes" }),
+      body: [block("This is a line\nSecond line in the same block")],
+      linkedRefs: [],
+    };
+    const html = serializeHtml(bundle, baseOptions);
+    expect(html).toContain("This is a line<br/>Second line in the same block");
   });
 
   it("does not repeat page properties as a body block", () => {

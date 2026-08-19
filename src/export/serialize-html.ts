@@ -171,6 +171,17 @@ function renderInline(text: string, keepWiki: boolean): string {
       }
     }
 
+    if (text[i] === "\r") {
+      i++;
+      continue;
+    }
+    if (text[i] === "\n") {
+      flush();
+      parts.push("<br/>");
+      i++;
+      continue;
+    }
+
     buf += text[i];
     i++;
   }
