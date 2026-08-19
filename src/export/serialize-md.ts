@@ -130,9 +130,14 @@ function shouldSkipBlock(block: BlockEntity): boolean {
   return !blockContent(block).trim();
 }
 
+/** Drop leading/trailing blank lines; keep internal newlines. */
+export function trimBlankLines(content: string): string {
+  return content.replace(/^(?:[ \t]*\r?\n)+/, "").replace(/(?:\r?\n[ \t]*)+$/, "");
+}
+
 /** Bullet plus indented continuation lines so multi-line blocks stay in the list. */
 export function listItemLines(content: string, indent: string): string[] {
-  const text = content.trimEnd();
+  const text = trimBlankLines(content);
   if (!text.trim()) return [`${indent}-`];
 
   const [first, ...rest] = text.split(/\r?\n/);

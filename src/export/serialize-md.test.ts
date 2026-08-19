@@ -82,6 +82,15 @@ describe("blocksToMarkdown", () => {
       "    also",
     ]);
   });
+
+  it("does not emit an empty bullet for blocks that start with blank lines", () => {
+    const tree = [block("Platform Evaluation", [block("\n\nBackground", [block("Steven")])])];
+    expect(blocksToMarkdown(tree, "keep")).toEqual([
+      "- Platform Evaluation",
+      "  - Background",
+      "    - Steven",
+    ]);
+  });
 });
 
 describe("withoutDuplicatedPageProperties", () => {

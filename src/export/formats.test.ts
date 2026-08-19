@@ -112,6 +112,10 @@ describe("formatBlockHtml", () => {
       "This is a line<br/>Second line in the same block",
     );
   });
+
+  it("does not turn leading blank lines into extra breaks", () => {
+    expect(formatBlockHtml("\n\nBackground", "keep")).toBe("Background");
+  });
 });
 
 describe("serializeHtml", () => {

@@ -1,6 +1,6 @@
 import type { BlockEntity } from "@logseq/libs/dist/LSPlugin.user";
 import { describeFilters } from "./filter-refs";
-import { pageTitle, rewriteLinks, withoutDuplicatedPageProperties } from "./serialize-md";
+import { pageTitle, rewriteLinks, trimBlankLines, withoutDuplicatedPageProperties } from "./serialize-md";
 import type { ExportBundle, LinkStyle, SerializeOptions } from "./types";
 
 export function escapeHtml(text: string): string {
@@ -206,19 +206,20 @@ function formatFencedCode(content: string): string | null {
 
 /** Block-level markdown: headings, fences, quotes, then inline formatting. */
 export function formatBlockHtml(content: string, linkStyle: LinkStyle): string {
-  const fenced = formatFencedCode(content);
+  const text = trimBlankLines(content);
+  const fenced = formatFencedCode(text);
   if (fenced) return fenced;
 
-  const trimmed = content.trim();
+  const trimmed = text.trim();
   if (/^(-{3,}|\*{3,}|_{3,})$/.test(trimmed)) return "<hr/>";
 
-  const lines = content.split("\n");
+  const lines = text.split("\n");
   const heading = lines[0].match(/^(#{1,6})\s+(.*)$/);
   if (heading) {
     const level = heading[1].length;
     const title = formatInlineHtml(heading[2], linkStyle);
     const rest = lines.slice(1).join("\n");
-    const restHtml = rest.trim() ? formatInlineHtml(rest, linkStyle) : "";
+    const restHtml = rest.trim() ? formatInlineHtml(trimBlankLines(rest), linkStyle) : "";
     return `<h${level}>${title}</h${level}>${restHtml}`;
   }
 
@@ -227,7 +228,7 @@ export function formatBlockHtml(content: string, linkStyle: LinkStyle): string {
     return `<blockquote>${formatInlineHtml(inner, linkStyle)}</blockquote>`;
   }
 
-  return formatInlineHtml(content, linkStyle);
+  return formatInlineHtml(text, linkStyle);
 }
 
 function blockContent(block: BlockEntity): string {
@@ -246,7 +247,7 @@ function blocksToHtmlList(
     const children = (block.children as BlockEntity[] | undefined) ?? [];
     if (!content && children.length === 0) continue;
 
-    const inner = content ? formatBlockHtml(blockContent(block), linkStyle) : "";
+    const inner = content ? formatBlockHtml(content, linkStyle) : "";
     const childHtml = blocksToHtmlList(children, linkStyle);
     items.push(`<li>${inner}${childHtml}</li>`);
   }
