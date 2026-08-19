@@ -205,6 +205,16 @@ describe("serializePlain", () => {
     expect(text).not.toContain("<h1>");
     expect(text).toContain("- Detail Other");
   });
+
+  it("indents continuation lines of a multi-line block", () => {
+    const bundle: ExportBundle = {
+      page: page({ name: "notes", originalName: "Notes" }),
+      body: [block("first\nsecond", [block("child")])],
+      linkedRefs: [],
+    };
+    const text = serializePlain(bundle, { ...baseOptions, linkStyle: "plain" });
+    expect(text).toContain("- first\n  second\n  - child");
+  });
 });
 
 describe("packageMarkdownZip", () => {

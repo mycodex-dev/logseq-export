@@ -130,6 +130,20 @@ function shouldSkipBlock(block: BlockEntity): boolean {
   return !blockContent(block).trim();
 }
 
+/** Bullet plus indented continuation lines so multi-line blocks stay in the list. */
+export function listItemLines(content: string, indent: string): string[] {
+  const text = content.trimEnd();
+  if (!text.trim()) return [`${indent}-`];
+
+  const [first, ...rest] = text.split(/\r?\n/);
+  const lines = [first ? `${indent}- ${first}` : `${indent}-`];
+  const continuation = `${indent}  `;
+  for (const line of rest) {
+    lines.push(`${continuation}${line}`);
+  }
+  return lines;
+}
+
 export function blocksToMarkdown(
   blocks: BlockEntity[],
   linkStyle: LinkStyle,
@@ -144,11 +158,7 @@ export function blocksToMarkdown(
 
     const indent = "  ".repeat(depth);
     const content = rewriteLinks(blockContent(block), linkStyle);
-    if (content.trim()) {
-      lines.push(`${indent}- ${content}`);
-    } else {
-      lines.push(`${indent}-`);
-    }
+    lines.push(...listItemLines(content, indent));
 
     const children = (block.children as BlockEntity[] | undefined) ?? [];
     if (children.length > 0) {

@@ -64,6 +64,24 @@ describe("blocksToMarkdown", () => {
     const tree = [block("parent", [block("child")])];
     expect(blocksToMarkdown(tree, "keep")).toEqual(["- parent", "  - child"]);
   });
+
+  it("indents continuation lines of a multi-line block under the same bullet", () => {
+    expect(blocksToMarkdown([block("first\nsecond\nthird")], "keep")).toEqual([
+      "- first",
+      "  second",
+      "  third",
+    ]);
+  });
+
+  it("keeps nested children under a multi-line parent", () => {
+    const tree = [block("parent\nmore", [block("child\nalso")])];
+    expect(blocksToMarkdown(tree, "keep")).toEqual([
+      "- parent",
+      "  more",
+      "  - child",
+      "    also",
+    ]);
+  });
 });
 
 describe("withoutDuplicatedPageProperties", () => {

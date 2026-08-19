@@ -1,6 +1,6 @@
 import type { BlockEntity } from "@logseq/libs/dist/LSPlugin.user";
 import { describeFilters } from "./filter-refs";
-import { pageTitle, rewriteLinks, withoutDuplicatedPageProperties } from "./serialize-md";
+import { listItemLines, pageTitle, rewriteLinks, withoutDuplicatedPageProperties } from "./serialize-md";
 import type { ExportBundle, LinkStyle, SerializeOptions } from "./types";
 
 function blockContent(block: BlockEntity): string {
@@ -19,8 +19,7 @@ function blocksToPlain(
     if (!content.trim() && children.length === 0) continue;
 
     const indent = "  ".repeat(depth);
-    const text = rewriteLinks(content, linkStyle).trimEnd();
-    lines.push(text ? `${indent}- ${text}` : `${indent}-`);
+    lines.push(...listItemLines(rewriteLinks(content, linkStyle), indent));
     if (children.length > 0) {
       lines.push(...blocksToPlain(children, linkStyle, depth + 1));
     }
