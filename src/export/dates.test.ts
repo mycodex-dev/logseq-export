@@ -3,6 +3,7 @@ import {
   inDateRange,
   journalDayToIso,
   parseIsoDate,
+  parseJournalTitle,
   timestampToLocalIso,
   dateRangeIsValid,
 } from "./dates";
@@ -30,6 +31,21 @@ describe("journalDayToIso", () => {
   it("rejects malformed values", () => {
     expect(journalDayToIso(2026)).toBeNull();
     expect(journalDayToIso(null)).toBeNull();
+  });
+});
+
+describe("parseJournalTitle", () => {
+  it("parses Logseq English journal titles", () => {
+    expect(parseJournalTitle("Aug 18th, 2026")).toBe("2026-08-18");
+    expect(parseJournalTitle("Aug 17th, 2026")).toBe("2026-08-17");
+    expect(parseJournalTitle("January 1st, 2025")).toBe("2025-01-01");
+    expect(parseJournalTitle("Mar 2nd, 2026")).toBe("2026-03-02");
+  });
+
+  it("accepts ISO titles and rejects non-dates", () => {
+    expect(parseJournalTitle("2026-08-18")).toBe("2026-08-18");
+    expect(parseJournalTitle("sample page")).toBeNull();
+    expect(parseJournalTitle("Feb 31st, 2026")).toBeNull();
   });
 });
 

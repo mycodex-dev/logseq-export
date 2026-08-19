@@ -65,6 +65,33 @@ describe("serializeHtml", () => {
     expect(html).toContain('<a class="wikilink"');
   });
 
+  it("nests linked-ref children under the matching block in given order", () => {
+    const bundle: ExportBundle = {
+      page: page({ name: "sample page", originalName: "sample page" }),
+      body: [block("body")],
+      linkedRefs: [
+        {
+          page: page({ name: "aug 18th, 2026", originalName: "Aug 18th, 2026" }),
+          blocks: [
+            block("Meetings", [
+              block("[[sample page]] second meeting", [
+                block("line 1: this should appear in the right order"),
+                block("line 2: let's see if it does"),
+              ]),
+            ]),
+          ],
+        },
+      ],
+    };
+
+    const html = serializeHtml(bundle, baseOptions);
+    const refs = html.slice(html.indexOf('id="linked-references"'));
+    expect(refs.indexOf("Aug 18th, 2026")).toBeGreaterThan(-1);
+    expect(refs.indexOf("Meetings")).toBeLessThan(refs.indexOf("second meeting"));
+    expect(refs.indexOf("line 1:")).toBeLessThan(refs.indexOf("line 2:"));
+    expect(refs.indexOf("second meeting")).toBeLessThan(refs.indexOf("line 1:"));
+  });
+
   it("includes filter provenance", () => {
     const html = serializeHtml(sampleBundle(true), baseOptions);
     expect(html).toContain("Filters:");
