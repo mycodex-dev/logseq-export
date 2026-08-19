@@ -2,6 +2,15 @@ import type { BlockEntity, PageEntity } from "@logseq/libs/dist/LSPlugin.user";
 
 export type LinkStyle = "keep" | "bold" | "plain";
 
+/** How linked-reference groups are ordered in the export. */
+export type LinkedRefSort = "newest-first" | "oldest-first" | "alphabetical";
+
+export const LINKED_REF_SORT_CHOICES = [
+  "newest-first",
+  "oldest-first",
+  "alphabetical",
+] as const satisfies readonly LinkedRefSort[];
+
 /** Canonical format ids. Legacy settings value `zip` maps to `markdown-zip`. */
 export type ExportFormat = "markdown" | "markdown-zip" | "html" | "plain";
 
@@ -20,6 +29,7 @@ export interface FilterOptions {
 export interface ExportSettings {
   defaultFormat: ExportFormat;
   includeParentPath: boolean;
+  linkedRefSort: LinkedRefSort;
   linkStyle: LinkStyle;
   headingForRefs: string;
   filters: FilterOptions;

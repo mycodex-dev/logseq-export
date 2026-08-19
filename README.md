@@ -22,6 +22,7 @@ Multi-format export is implemented: Markdown, Markdown ZIP, HTML, plain text.
 - Collects page body via `getPageBlocksTree`
 - Collects backlinks via `getPageLinkedReferences`
 - Optional parent-path context for each backlink
+- Sort linked references newest-first, oldest-first, or alphabetically (plugin setting)
 - Wiki-link rewriting: keep / bold / plain
 - **Output formats:** Markdown, Markdown ZIP, HTML, plain text (plugin setting)
 - **Filter linked references** by include/exclude tags and inclusive date range (plugin settings)

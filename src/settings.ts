@@ -5,10 +5,11 @@ import type {
   ExportSettings,
   ExportFormat,
   FilterOptions,
+  LinkedRefSort,
   LinkStyle,
   TagMatchMode,
 } from "./export/types";
-import { emptyFilters } from "./export/types";
+import { emptyFilters, LINKED_REF_SORT_CHOICES } from "./export/types";
 
 const FORMAT_CHOICES = ["markdown", "markdown-zip", "html", "plain"] as const;
 
@@ -98,6 +99,16 @@ export const settingsSchema: SettingSchemaDesc[] = [
     description:
       "When enabled, ancestor blocks above each matching backlink are included for context.",
     default: true,
+  },
+  {
+    key: "linkedRefSort",
+    type: "enum",
+    title: "Linked references sort order",
+    description:
+      "newest-first = journals by date descending (matches Logseq); oldest-first = journals oldest first; alphabetical = by source page name.",
+    default: "newest-first",
+    enumChoices: [...LINKED_REF_SORT_CHOICES],
+    enumPicker: "select",
   },
   {
     key: "linkStyle",
@@ -219,12 +230,11 @@ function readFilters(raw: Record<string, unknown>): FilterOptions {
   };
 }
 
-export function readExportSettings(): ExportSettings {
-  const raw = (logseq.settings ?? {}) as Record<string, unknown>;
-
+export function parseExportSettings(raw: Record<string, unknown>): ExportSettings {
   return {
     defaultFormat: readFormat(raw.defaultFormat),
     includeParentPath: raw.includeParentPath !== false,
+    linkedRefSort: asEnum<LinkedRefSort>(raw.linkedRefSort, LINKED_REF_SORT_CHOICES, "newest-first"),
     linkStyle: asEnum<LinkStyle>(raw.linkStyle, ["keep", "bold", "plain"], "keep"),
     headingForRefs:
       typeof raw.headingForRefs === "string" && raw.headingForRefs.trim()
@@ -232,4 +242,8 @@ export function readExportSettings(): ExportSettings {
         : "Linked References",
     filters: readFilters(raw),
   };
+}
+
+export function readExportSettings(): ExportSettings {
+  return parseExportSettings((logseq.settings ?? {}) as Record<string, unknown>);
 }

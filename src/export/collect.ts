@@ -1,7 +1,7 @@
 import type { BlockEntity, PageEntity, PageIdentity } from "@logseq/libs/dist/LSPlugin.user";
 import { dateRangeIsValid, journalDayToIso, parseJournalTitle } from "./dates";
 import { countRefBlocks, filterLinkedRefs } from "./filter-refs";
-import type { ExportBundle, FilterOptions, LinkedRefGroup } from "./types";
+import type { ExportBundle, FilterOptions, LinkedRefGroup, LinkedRefSort } from "./types";
 import { emptyFilters } from "./types";
 
 type ParentLike = { id?: number | string; uuid?: string } | number | string | undefined | null;
@@ -104,19 +104,35 @@ export function pageJournalDay(page: PageEntity): string | null {
   return null;
 }
 
-/**
- * Match Logseq’s linked-references UI: journal pages newest-first, then
- * other pages alphabetically.
- */
-export function sortLinkedRefGroups(groups: LinkedRefGroup[]): LinkedRefGroup[] {
-  return [...groups].sort((a, b) => {
-    const dateA = pageJournalDay(a.page);
-    const dateB = pageJournalDay(b.page);
-    if (dateA && dateB && dateA !== dateB) return dateB.localeCompare(dateA);
-    if (dateA && !dateB) return -1;
-    if (!dateA && dateB) return 1;
+function compareLinkedRefGroups(
+  a: LinkedRefGroup,
+  b: LinkedRefGroup,
+  order: LinkedRefSort,
+): number {
+  if (order === "alphabetical") {
     return pageLabel(a.page).localeCompare(pageLabel(b.page));
-  });
+  }
+
+  const dateA = pageJournalDay(a.page);
+  const dateB = pageJournalDay(b.page);
+  if (dateA && dateB && dateA !== dateB) {
+    const oldestFirst = dateA.localeCompare(dateB);
+    return order === "oldest-first" ? oldestFirst : -oldestFirst;
+  }
+  if (dateA && !dateB) return -1;
+  if (!dateA && dateB) return 1;
+  return pageLabel(a.page).localeCompare(pageLabel(b.page));
+}
+
+/**
+ * Order linked-reference groups. Date sorts put journals first (newest or
+ * oldest), then undated pages alphabetically.
+ */
+export function sortLinkedRefGroups(
+  groups: LinkedRefGroup[],
+  order: LinkedRefSort = "newest-first",
+): LinkedRefGroup[] {
+  return [...groups].sort((a, b) => compareLinkedRefGroups(a, b, order));
 }
 
 async function hydrateWithChildren(block: BlockEntity): Promise<BlockEntity> {
@@ -188,6 +204,7 @@ export async function withParentPath(
 
 export interface CollectOptions {
   includeParentPath?: boolean;
+  linkedRefSort?: LinkedRefSort;
   filters?: FilterOptions;
 }
 
@@ -234,7 +251,7 @@ export async function collectExport(
   return {
     page,
     body,
-    linkedRefs: sortLinkedRefGroups(linkedRefs),
+    linkedRefs: sortLinkedRefGroups(linkedRefs, options.linkedRefSort ?? "newest-first"),
     appliedFilters: filters,
     linkedRefCountBeforeFilter: beforeCount,
   };

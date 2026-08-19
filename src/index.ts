@@ -44,6 +44,7 @@ async function exportPage(identity?: string): Promise<void> {
     const settings = readExportSettings();
     const bundle = await collectExport(root, {
       includeParentPath: settings.includeParentPath,
+      linkedRefSort: settings.linkedRefSort,
       filters: settings.filters,
     });
 

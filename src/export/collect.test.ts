@@ -77,25 +77,41 @@ describe("pageJournalDay", () => {
 });
 
 describe("sortLinkedRefGroups", () => {
-  it("orders journals newest-first, then other pages by name", () => {
-    const groups: LinkedRefGroup[] = [
-      {
-        page: page({ name: "aug 17th, 2026", originalName: "Aug 17th, 2026", journalDay: 20260817 }),
-        blocks: [block("older")],
-      },
-      {
-        page: page({ name: "scratch", originalName: "Scratch" }),
-        blocks: [block("note")],
-      },
-      {
-        page: page({ name: "aug 18th, 2026", originalName: "Aug 18th, 2026", journalDay: 20260818 }),
-        blocks: [block("newer")],
-      },
-    ];
+  const groups: LinkedRefGroup[] = [
+    {
+      page: page({ name: "aug 17th, 2026", originalName: "Aug 17th, 2026", journalDay: 20260817 }),
+      blocks: [block("older")],
+    },
+    {
+      page: page({ name: "scratch", originalName: "Scratch" }),
+      blocks: [block("note")],
+    },
+    {
+      page: page({ name: "aug 18th, 2026", originalName: "Aug 18th, 2026", journalDay: 20260818 }),
+      blocks: [block("newer")],
+    },
+  ];
 
+  it("orders journals newest-first by default, then other pages by name", () => {
     expect(sortLinkedRefGroups(groups).map((g) => g.page.originalName)).toEqual([
       "Aug 18th, 2026",
       "Aug 17th, 2026",
+      "Scratch",
+    ]);
+  });
+
+  it("orders journals oldest-first when requested", () => {
+    expect(sortLinkedRefGroups(groups, "oldest-first").map((g) => g.page.originalName)).toEqual([
+      "Aug 17th, 2026",
+      "Aug 18th, 2026",
+      "Scratch",
+    ]);
+  });
+
+  it("orders all source pages alphabetically when requested", () => {
+    expect(sortLinkedRefGroups(groups, "alphabetical").map((g) => g.page.originalName)).toEqual([
+      "Aug 17th, 2026",
+      "Aug 18th, 2026",
       "Scratch",
     ]);
   });
