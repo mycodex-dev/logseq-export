@@ -12,7 +12,75 @@ import { emptyFilters } from "./export/types";
 
 const FORMAT_CHOICES = ["markdown", "markdown-zip", "html", "plain"] as const;
 
+export interface EntryPointSettings {
+  enableCommandPalette: boolean;
+  enableSlashCommand: boolean;
+  enablePageMenu: boolean;
+  enableToolbar: boolean;
+  enablePageHeader: boolean;
+  enableShortcut: boolean;
+  shortcutBinding: string;
+}
+
 export const settingsSchema: SettingSchemaDesc[] = [
+  {
+    key: "entryPointsHeading",
+    type: "heading",
+    title: "How to run export",
+    description:
+      "Choose where Export page with linked references appears. Turning a command off (palette, slash, page menu, or shortcut) may require disabling and re-enabling the plugin.",
+    default: "",
+  },
+  {
+    key: "enableCommandPalette",
+    type: "boolean",
+    title: "Command palette",
+    description: "Show Export page with linked references in the command palette.",
+    default: true,
+  },
+  {
+    key: "enableSlashCommand",
+    type: "boolean",
+    title: "Slash command",
+    description: "Register /Export page with linked references in the editor.",
+    default: true,
+  },
+  {
+    key: "enablePageMenu",
+    type: "boolean",
+    title: "Page menu",
+    description: "Add the command to the page ••• menu.",
+    default: true,
+  },
+  {
+    key: "enableToolbar",
+    type: "boolean",
+    title: "Toolbar icon",
+    description: "Show an export button in the top plugin toolbar.",
+    default: true,
+  },
+  {
+    key: "enablePageHeader",
+    type: "boolean",
+    title: "Page title button",
+    description: "Show an export button next to the page title.",
+    default: true,
+  },
+  {
+    key: "enableShortcut",
+    type: "boolean",
+    title: "Keyboard shortcut",
+    description:
+      "Bind a chord to export. Uses the command-palette command; changing the chord after first load may require a plugin reload.",
+    default: false,
+  },
+  {
+    key: "shortcutBinding",
+    type: "string",
+    title: "Shortcut chord",
+    description: "Logseq keybinding when the shortcut is enabled, e.g. mod+shift+e. Leave blank for none.",
+    default: "",
+  },
   {
     key: "defaultFormat",
     type: "enum",
@@ -107,6 +175,28 @@ function asEnum<T extends string>(value: unknown, allowed: readonly T[], fallbac
   return typeof value === "string" && (allowed as readonly string[]).includes(value)
     ? (value as T)
     : fallback;
+}
+
+function asBoolean(value: unknown, defaultValue: boolean): boolean {
+  if (typeof value === "boolean") return value;
+  return defaultValue;
+}
+
+export function parseEntryPointSettings(raw: Record<string, unknown>): EntryPointSettings {
+  const shortcutBinding = typeof raw.shortcutBinding === "string" ? raw.shortcutBinding.trim() : "";
+  return {
+    enableCommandPalette: asBoolean(raw.enableCommandPalette, true),
+    enableSlashCommand: asBoolean(raw.enableSlashCommand, true),
+    enablePageMenu: asBoolean(raw.enablePageMenu, true),
+    enableToolbar: asBoolean(raw.enableToolbar, true),
+    enablePageHeader: asBoolean(raw.enablePageHeader, true),
+    enableShortcut: asBoolean(raw.enableShortcut, false),
+    shortcutBinding,
+  };
+}
+
+export function readEntryPointSettings(): EntryPointSettings {
+  return parseEntryPointSettings((logseq.settings ?? {}) as Record<string, unknown>);
 }
 
 function readFormat(raw: unknown): ExportFormat {

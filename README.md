@@ -4,7 +4,7 @@ Logseq plugin to export a page together with its **linked references (backlinks 
 
 ## Status
 
-Phase 1 MVP implemented: command palette + slash command → single Markdown download.
+Phase 1 MVP implemented: multiple launch entry points → single Markdown download.
 
 Tag + date filters for linked references are implemented via plugin settings (export dialog still planned).
 Multi-format export is implemented: Markdown, Markdown ZIP, HTML, plain text.
@@ -17,8 +17,8 @@ Multi-format export is implemented: Markdown, Markdown ZIP, HTML, plain text.
 
 ## Features
 
-- Command palette: **Export page with linked references**
-- Slash command: `/Export page with linked references`
+- Launch from the page **•••** menu, toolbar icon, page-title button, command palette, slash command, or an optional keyboard shortcut
+- Each launch entry can be turned on or off in plugin settings
 - Collects page body via `getPageBlocksTree`
 - Collects backlinks via `getPageLinkedReferences`
 - Optional parent-path context for each backlink
@@ -36,8 +36,16 @@ Multi-format export is implemented: Markdown, Markdown ZIP, HTML, plain text.
 ## Usage
 
 1. Open a page
-2. Run **Export page with linked references** from the command palette
-3. A Markdown file downloads: page body, then a **Linked References** section grouped by source page
+2. Run **Export page with linked references** from any enabled entry point:
+   - Page **•••** menu
+   - Toolbar icon (top plugin bar)
+   - Button next to the page title
+   - Command palette
+   - Slash command: `/Export page with linked references`
+   - Keyboard shortcut (off by default; set a chord such as `mod+shift+e` in settings)
+3. A file downloads: page body, then a **Linked References** section grouped by source page
+
+Toggle entry points under **Plugins → Export Page + Linked References → How to run export**. Toolbar and page-title buttons hide or show immediately. Turning off the palette, slash command, page menu, or shortcut may require disabling and re-enabling the plugin.
 
 ## Scripts
 
